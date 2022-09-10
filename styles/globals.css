@@ -22,6 +22,12 @@ a{
   margin: 0 auto;
 }
 
+@media (max-width: 1200px) {
+  .content div{
+    padding: 0 1rem;
+  }
+}
+
 nav{
   background: hsl(3, 100%, 88%);
   padding: 1rem;
