@@ -1,10 +1,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700;1,900&display=swap');
 
+:root{
+  --countup-time: 1s;
+  --slide-animation-time: 0.8s;
+}
+
 body{
   background: hsl(3, 100%, 98%);
   padding: 0;
   margin: 0;
   font-family: 'Source Sans Pro', Arial, Helvetica, sans-serif;
+  overflow-x: hidden;
 }
 
 a{
@@ -38,6 +44,10 @@ nav{
 
 nav a{
   margin-left: 1rem;
+}
+
+button:disabled{
+  cursor: wait;
 }
 
 footer{

@@ -5,6 +5,9 @@ import styles from "../styles/Play.module.css"
 const allPackages = ["lodash", "chalk", "request", "commander", "react", "express", "debug", "async", "fs-extra", "moment", "prop-types", "react-dom", "bluebird", "underscore", "vue", "axios", "tslib", "mkdirp", "glob", "yargs", "colors", "inquirer", "webpack", "uuid", "classnames", "minimist", "body-parser", "rxjs", "babel-runtime", "jquery", "yeoman-generator", "through2", "babel-core", "semver", "babel-loader", "cheerio", "rimraf", "q", "eslint", "css-loader", "shelljs", "dotenv", "typescript", "@types/node", "@angular/core", "js-yaml", "style-loader", "winston", "@angular/common", "redux"] // taken from npm rank
 let availablePackages = [...allPackages]
 
+const countUpTime = 1;
+const slideAnimationTime = 0.8;
+
 const Play = () => {
     const hiddenDownloadsCounter = useRef(null)
 
@@ -12,9 +15,9 @@ const Play = () => {
     const [score, setScore] = useState(0)
     const [sliding, setSliding] = useState(false)
     const [hideDownloads, setHideDownloads] = useState(true)
-    const [hideButtons, setHideButtons] = useState(false)
     const [gameOver, setGameOver] = useState(false)
     const [correct, setCorrect] = useState(false)
+    const [highScore, setHighScore]= useState(null)
 
     const [packages, setPackages] = useState([])
     const [weeklyDownloads, setWeeklyDownloads] = useState([])
@@ -47,14 +50,11 @@ const Play = () => {
                 tempWeeklyDownloads.push(data.downloads)
             }
 
-            console.log(tempWeeklyDownloads)
-
             setWeeklyDownloads(tempWeeklyDownloads)
             setIsLoading(false)
         }
 
         if(packages [0] && packages [1] && packages [2]){
-            console.log(packages)
             fetchWeeklyDownloads()
         }
     }, [packages])
@@ -62,6 +62,10 @@ const Play = () => {
     useEffect(() =>{
         setIsLoading(true)
         generateRandomPackages()
+
+        if(typeof window !== "undefined"){
+            setHighScore(localStorage.getItem("highScore"))
+        }
     }, [])
 
     const generateRandomPackages = () => {
@@ -81,9 +85,9 @@ const Play = () => {
         generateRandomPackages()
         setScore(0)
         setSliding(false)
-        availablePackages = [...packages]
+        availablePackages = [...allPackages]
         setCorrect(false)
-        setHideButtons(false)
+        setIsLoading(false)
         setHideDownloads(true)
         setGameOver(false)
     }    
@@ -91,48 +95,42 @@ const Play = () => {
     const handleClick = (mode, npmPackage) =>{
         const packageIndex = packages.indexOf(npmPackage)
 
-        if(mode === "higher" && weeklyDownloads [packageIndex] > weeklyDownloads [packageIndex - 1]){
-            setTimeout(() =>{
-                setScore(score + 1)
-            }, 1000)
-
+        if(mode === "higher" && weeklyDownloads [packageIndex] > weeklyDownloads [packageIndex - 1] ||
+        mode === "lower" && weeklyDownloads [packageIndex] < weeklyDownloads [packageIndex - 1] ||
+        weeklyDownloads [packageIndex] === weeklyDownloads [packageIndex - 1]){
             setCorrect(true)
+            setSliding(true)
             const newPackage = availablePackages [Math.floor(Math.random() * availablePackages.length)]
             availablePackages.splice(availablePackages.indexOf(newPackage), 1)
             
             setTimeout(() =>{
+                setSliding(false)
                 setPackages([packages [1], packages [2], newPackage])
                 setCorrect(false)
                 setHideDownloads(true)
-                setHideButtons(false)
-            }, 1800)
-        } else if(mode === "lower" && weeklyDownloads [packageIndex] < weeklyDownloads [packageIndex - 1]){
-            setTimeout(() =>{
+                setIsLoading(false)
                 setScore(score + 1)
-            }, 1000)
-
-            setCorrect(true)
-            const newPackage = availablePackages [Math.floor(Math.random() * availablePackages.length)]
-            availablePackages.splice(availablePackages.indexOf(newPackage), 1)
-            
-            setTimeout(() =>{
-                setPackages([packages [1], packages [2], newPackage])
-                setCorrect(false)
-                setHideDownloads(true)
-                setHideButtons(false)
-            }, 1800)
-        } else{
+            }, (countUpTime + slideAnimationTime) * 1000)
+        }
+        else{
             setTimeout(() => {
                 setGameOver(true)
-            }, 1500);
+                setIsLoading(false)
+                if(score > highScore){
+                    localStorage.setItem("highScore", score)
+                    setHighScore(score)
+                }
+            }, countUpTime * 1000 + 500);
         }
 
         setHideDownloads(false)
-        setHideButtons(true)
+        setIsLoading(true)
     }
 
     return (
         <div>
+            {highScore && <div className={styles ["high-score"]}>Your high score: {highScore}</div>}
+
             {isLoading ? 
                 <div className={styles.loader}></div>
             : 
@@ -142,7 +140,7 @@ const Play = () => {
             {playing && 
                 <div className={styles["game-container"]}>
                     <div className={styles.game}>
-                        <button title="Close game" className={styles.close} onClick={() => {
+                        <button disabled={sliding} title="Close game" className={styles.close} onClick={() => {
                             setPlaying(false)
                             resetGame()
                         }}>x</button>
@@ -151,33 +149,33 @@ const Play = () => {
                             <>
                                 <span className={styles.score}>Your score: {score}</span>
                                 {packages.map((npmPackage, index) =>(
-                                    <div key={index} className={`${styles.panel} ${!sliding && packages [2] === npmPackage ? styles.hidden : ""}`}>
+                                    <div key={index} className={`${styles.panel}${packages [2] === npmPackage ? " " + styles.hidden + " " : ""}${sliding ? " " + styles.sliding : ""}`}>
                                         <span className={styles.name}>{npmPackage}</span>
-                                        
+
                                         {npmPackage === packages [1] && !hideDownloads &&
                                             <CountUp separator="," duration={1} end={weeklyDownloads [index]} prefix="Has " suffix=" weekly downloads" className={styles.details}></CountUp>
                                         }{npmPackage === packages [0] &&
-                                            <span className={styles.details}>Has {weeklyDownloads [index].toLocaleString()} downloads</span>
-                                        }{npmPackage === packages [1] && hideDownloads &&
+                                            <span className={styles.details}>Has {weeklyDownloads [index].toLocaleString()} weekly downloads</span>
+                                        }{((npmPackage === packages [1] && hideDownloads) || npmPackage === packages [2]) &&
                                             <span className={styles.details}>Has <span ref={hiddenDownloadsCounter}>???</span> weekly downloads</span>
                                         }
 
-                                        {npmPackage !== packages [0] && !hideButtons &&
+                                        {npmPackage !== packages [0] &&
                                             <div className={styles["buttons-container"]}>
-                                                <button onClick={() =>{handleClick("higher", npmPackage)}} className={styles["higher-button"]}>Higher</button>
-                                                <button onClick={() =>{handleClick("lower", npmPackage)}} className={styles["lower-button"]}>Lower</button>
+                                                <button disabled={isLoading} onClick={() =>{handleClick("higher", npmPackage)}} className={styles["higher-button"]}>Higher</button>
+                                                <button disabled={isLoading} onClick={() =>{handleClick("lower", npmPackage)}} className={styles["lower-button"]}>Lower</button>
                                             </div>
-                                        }
-                                        {npmPackage === packages [1] && correct && 
-                                            <div className={styles.tick}>✔️</div>
                                         }
                                     </div>
                                 ))}
+                                <div className={styles.versus}>vs</div>
                             </>
                             :
                             <div className={styles ["game-over"]}>
-                                Game over
-                                <br />You finished with a score of {score}
+                                <div>
+                                    Game over <br />You finished with a score of {score}
+                                </div>
+                                <button disabled={isLoading} className={styles ["play-again"]} onClick={() => resetGame()}>Play Again</button>
                             </div>
                         }
                     </div>

@@ -1,3 +1,9 @@
+.high-score{
+    margin: 1rem auto;
+    text-align: center;
+    font-size: 1.5rem;
+}
+
 .button{
     background: white;
     border: 1px solid #ccc;
@@ -68,12 +74,35 @@
     color: white;
     text-align: center;
     margin: 4rem auto;
+    padding: 1rem;
+}
+.play-again{
+    background: white;
+    border: 1px solid #ffc9c9;
+    border-radius: 0.25rem;
+    padding: 0.5rem;
+    display: block;
+    margin: auto;
+    cursor: pointer;
 }
 .score{
     display: block;
     font-size: 1.5rem;
     text-align: center;
 }
+.versus{
+    z-index: 1;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%); 
+    background: hsl(0, 100%, 86%);
+    padding: 1.5rem;
+    font-size: 1rem;
+    border: 1px solid hsl(0, 100%, 76%);
+    border-radius: 50%;
+}
+
 .panel{
     background: #ffefee;
     border: 1px solid #ffd9d6;
@@ -81,7 +110,7 @@
     padding: 2rem 1rem;
     position: absolute;
     width: 49.5%;
-    height: 90%;
+    height: 85%;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -93,7 +122,25 @@
 .panel.hidden{
     left: 101%;
     display: none;
-}   
+}
+.panel.sliding{
+    animation: slide-left-fade-in var(--slide-animation-time) var(--countup-time) ease-in-out forwards;
+}
+.panel.sliding:first-of-type{
+    animation: slide-left-fade-out var(--slide-animation-time) var(--countup-time) ease-in-out forwards;
+}
+.panel.sliding:nth-of-type(2) button{
+    animation: fade-out var(--slide-animation-time) var(--countup-time) ease-in-out forwards;
+}
+.panel.sliding:nth-of-type(2) .name,
+.panel.sliding:nth-of-type(2) .details{
+    animation: slide-down var(--slide-animation-time) var(--countup-time) ease-in-out forwards;
+}
+.panel.hidden.sliding{
+    display: flex;
+    opacity: 0;
+}
+
 .name{
     font-size: 2.5rem;
     letter-spacing: -2px;
@@ -124,6 +171,7 @@
 .higher-button{
     background: hsl(120, 75%, 55%);
     border: 1px solid hsl(120, 75%, 65%);
+    transition: 0.25s ease-out;
 }
 .higher-button::after{
     content: "";
@@ -137,6 +185,7 @@
     background: hsl(0, 100%, 50%);
     border: 1px solid hsl(0, 100%, 60%);
     color: white;
+    transition: 0.25s ease-out;
 }
 .lower-button::after{
     content: "";
@@ -146,20 +195,40 @@
     border-right: 6px solid transparent;
     border-top: 7px solid hsl(0, 100%, 90%);
 }
-
-.tick{
-    opacity: 0;
-    animation: fade-in 0.8s 1s ease-out forwards;
-    font-size: 1.5rem;
+.higher-button:disabled{
+    background: hsl(120, 75%, 45%);
+}
+.lower-button:disabled{
+    background:hsl(0, 100%, 30%);
 }
 
 /* animations */
 @keyframes fade-in{
-    0%{opacity: 0}
-    100%{opacity: 1}
+    0%{ opacity: 0 }
+    100%{ opacity: 1 }
+}
+
+@keyframes fade-out{
+    0%{ opacity: 1 }
+    100%{ opacity: 0 }
 }
 
 @keyframes spin{
     0%{ transform: rotate(0deg) }
     100%{ transform: rotate(360deg) }
+}
+
+@keyframes slide-left-fade-in{
+    100%{ transform: translate(-102%); opacity: 1 }
+}
+
+@keyframes slide-left-fade-out{
+    100%{
+        opacity: 0;
+        transform: translate(-102%);
+    }
+}
+
+@keyframes slide-down{
+    100%{transform: translateY(56px);}
 }
