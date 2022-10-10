@@ -1,3 +1,5 @@
+import Head from 'next/head'
+
 import { useEffect, useRef, useState } from "react";
 import CountUp from "react-countup";
 import styles from "../styles/Play.module.css"
@@ -129,6 +131,12 @@ const Play = () => {
 
     return (
         <div>
+            <Head>
+                <title>Higher or Lower - Play Game</title>
+                <meta name="keywords" content="npm game"></meta>
+                <link rel="icon" href="/images/favicon.ico" />
+            </Head>
+
             {highScore && <div className={styles ["high-score"]}>Your high score: {highScore}</div>}
 
             {isLoading ? 
